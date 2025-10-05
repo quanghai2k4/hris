@@ -5,6 +5,7 @@ import { Toaster } from '@/components/ui/toaster'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import LoginPage from '@/pages/LoginPage'
 import EmployeeDashboard from '@/pages/EmployeeDashboard'
+import PrizeHistoryPage from '@/pages/PrizeHistoryPage'
 import QuizPage from '@/pages/QuizPage'
 import SpinPage from '@/pages/SpinPage'
 import HRDashboard from '@/pages/HRDashboard'
@@ -15,13 +16,17 @@ import UserManagement from '@/pages/UserManagement'
 const queryClient = new QueryClient()
 
 function RootRedirect() {
-  const { user } = useAuth()
+  const { user, isLoading } = useAuth()
+  
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>
+  }
   
   if (!user) {
     return <Navigate to="/login" replace />
   }
   
-  if (user.role === 'HR_MANAGER') {
+  if (user.role === 'HR_MANAGER' || user.role === 'ADMIN') {
     return <Navigate to="/hr/dashboard" replace />
   }
   
@@ -49,6 +54,15 @@ function App() {
               />
               
               <Route
+                path="/employee/prize-history"
+                element={
+                  <ProtectedRoute allowedRoles={['EMPLOYEE']}>
+                    <PrizeHistoryPage />
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
                 path="/employee/quiz/:eventId"
                 element={
                   <ProtectedRoute allowedRoles={['EMPLOYEE']}>
@@ -69,7 +83,7 @@ function App() {
               <Route
                 path="/hr/dashboard"
                 element={
-                  <ProtectedRoute allowedRoles={['HR_MANAGER']}>
+                  <ProtectedRoute allowedRoles={['HR_MANAGER', 'ADMIN']}>
                     <HRDashboard />
                   </ProtectedRoute>
                 }
@@ -78,7 +92,7 @@ function App() {
               <Route
                 path="/hr/events"
                 element={
-                  <ProtectedRoute allowedRoles={['HR_MANAGER']}>
+                  <ProtectedRoute allowedRoles={['HR_MANAGER', 'ADMIN']}>
                     <EventManagement />
                   </ProtectedRoute>
                 }
@@ -87,7 +101,7 @@ function App() {
               <Route
                 path="/hr/reports"
                 element={
-                  <ProtectedRoute allowedRoles={['HR_MANAGER']}>
+                  <ProtectedRoute allowedRoles={['HR_MANAGER', 'ADMIN']}>
                     <Reports />
                   </ProtectedRoute>
                 }
@@ -96,7 +110,7 @@ function App() {
               <Route
                 path="/hr/users"
                 element={
-                  <ProtectedRoute allowedRoles={['HR_MANAGER']}>
+                  <ProtectedRoute allowedRoles={['HR_MANAGER', 'ADMIN']}>
                     <UserManagement />
                   </ProtectedRoute>
                 }

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Home, Trophy, Calendar, CheckCircle2, Clock, Target } from 'lucide-react'
+import { Home, Trophy, Calendar, CheckCircle2, Clock, Coins } from 'lucide-react'
 import { formatDateVN } from '@/lib/datetime'
 
 export default function EmployeeDashboard() {
@@ -31,6 +31,7 @@ export default function EmployeeDashboard() {
 
   const navItems = [
     { title: 'Dashboard', href: '/employee/dashboard', icon: Home },
+    { title: 'Prize History', href: '/employee/prize-history', icon: Coins },
   ]
 
   const hasCompletedQuiz = (eventId: string) => {
@@ -44,9 +45,6 @@ export default function EmployeeDashboard() {
   const activeEvents = events?.filter((event) => event.status === 'ACTIVE') || []
   const completedQuizzes = quizzes?.length || 0
   const passedQuizzes = quizzes?.filter((quiz) => quiz.isPassed)?.length || 0
-  const averageScore = quizzes && quizzes.length > 0
-    ? (quizzes.reduce((acc, quiz) => acc + Number(quiz.score), 0) / quizzes.length).toFixed(1)
-    : 0
 
   return (
     <DashboardLayout navItems={navItems}>
@@ -58,7 +56,7 @@ export default function EmployeeDashboard() {
           </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Card className="bg-white/90 animate-in fade-in-0 slide-in-from-bottom-4 duration-500 transition-shadow hover:shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Active Events</CardTitle>
@@ -97,19 +95,6 @@ export default function EmployeeDashboard() {
               </p>
             </CardContent>
           </Card>
-
-          <Card className="bg-white/90 animate-in fade-in-0 slide-in-from-bottom-4 duration-500 transition-shadow hover:shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Average Score</CardTitle>
-              <Target className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{averageScore}%</div>
-              <p className="text-xs text-muted-foreground">
-                Across all quizzes
-              </p>
-            </CardContent>
-          </Card>
         </div>
 
         <div className="space-y-4">
@@ -131,15 +116,14 @@ export default function EmployeeDashboard() {
             </Card>
           ) : activeEvents.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {activeEvents.map((event, index) => {
+              {activeEvents.map((event) => {
                 const quiz = getQuizForEvent(event.id)
                 const completed = hasCompletedQuiz(event.id)
 
                 return (
                   <Card 
                     key={event.id} 
-                    className="bg-white/90 hover:shadow-lg transition-shadow duration-500 animate-in fade-in-0 slide-in-from-left-4" 
-                    style={{ animationDelay: `${index * 100}ms` }}
+                    className="bg-white/90 hover:shadow-lg transition-shadow duration-500 animate-in fade-in-0 slide-in-from-left-4"
                   >
                     <CardHeader>
                       <div className="flex items-start justify-between">
@@ -180,7 +164,7 @@ export default function EmployeeDashboard() {
                                   </div>
                                    {quiz?.spinCode && (
                                     <Button
-                                      className="w-full border transition-all duration-200 hover:scale-105 active:scale-95"
+                                      className="w-full border transition-all duration-200 hover:bg-neutral-400 hover:text-white"
                                       onClick={() => navigate(`/employee/spin/${quiz.spinCode}`)}
                                     >
                                       Spin the Wheel!
@@ -196,7 +180,7 @@ export default function EmployeeDashboard() {
                           </>
                          ) : (
                           <Button
-                            className="w-full border transition-all duration-200 hover:scale-105 active:scale-95"
+                            className="w-full border transition-all duration-200 hover:bg-neutral-400 hover:text-white"
                             onClick={() => navigate(`/employee/quiz/${event.id}`)}
                           >
                             Start Quiz
@@ -225,13 +209,12 @@ export default function EmployeeDashboard() {
           <div className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-700">
             <h3 className="text-xl font-semibold">Recent Quiz Results</h3>
             <div className="space-y-2">
-              {quizzes.slice(0, 5).map((quiz, index) => {
+              {quizzes.slice(0, 5).map((quiz) => {
                 const event = events?.find((e) => e.id === quiz.eventId)
                 return (
                   <Card 
                     key={quiz.id} 
                     className="bg-white/90 animate-in fade-in-0 slide-in-from-right-4 duration-500 transition-shadow hover:shadow-lg"
-                    style={{ animationDelay: `${(index + 6) * 75}ms` }}
                   >
                     <CardContent className="pt-6 pb-6">
                       <div className="flex items-center justify-between">
