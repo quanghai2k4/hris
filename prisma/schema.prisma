@@ -1,0 +1,232 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id          String   @id @default(uuid())
+  employeeId  String   @unique @map("employee_id")
+  fullName    String   @map("full_name")
+  email       String   @unique
+  password    String
+  role        Role     @default(EMPLOYEE)
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  quizSessions QuizSession[]
+  quizResults  QuizResult[]
+  spinCodes    SpinCode[]
+  spinResults  SpinResult[]
+  
+  @@map("users")
+}
+
+enum Role {
+  EMPLOYEE
+  HR_MANAGER
+  ADMIN
+}
+
+model Event {
+  id          String      @id @default(uuid())
+  name        String
+  description String?
+  status      EventStatus @default(DRAFT)
+  startDate   DateTime    @map("start_date")
+  endDate     DateTime    @map("end_date")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  
+  config       EventConfig?
+  budget       EventBudget?
+  questions    EventQuestion[]
+  quizSessions QuizSession[]
+  quizResults  QuizResult[]
+  spinCodes    SpinCode[]
+  spinResults  SpinResult[]
+  
+  @@map("events")
+}
+
+enum EventStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+model EventConfig {
+  id                 String  @id @default(uuid())
+  eventId            String  @unique @map("event_id")
+  minScore           Int     @map("min_score")
+  questionCount      Int     @map("question_count")
+  prizeMin           Decimal @map("prize_min")
+  prizeMax           Decimal @map("prize_max")
+  shuffleQuestions   Boolean @default(false) @map("shuffle_questions")
+  shuffleAnswers     Boolean @default(false) @map("shuffle_answers")
+  
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  @@map("event_configs")
+}
+
+model EventBudget {
+  id               String   @id @default(uuid())
+  eventId          String   @unique @map("event_id")
+  totalBudget      Decimal  @map("total_budget")
+  usedBudget       Decimal  @default(0) @map("used_budget")
+  remainingBudget  Decimal  @map("remaining_budget")
+  totalSpins       Int      @default(0) @map("total_spins")
+  lastUpdated      DateTime @default(now()) @map("last_updated")
+  
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  @@map("event_budgets")
+}
+
+model Question {
+  id        String   @id @default(uuid())
+  content   String
+  type      QuestionType @default(SINGLE_CHOICE)
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  answers       Answer[]
+  events        EventQuestion[]
+  sessionAnswers SessionAnswer[]
+  
+  @@map("questions")
+}
+
+enum QuestionType {
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+}
+
+model Answer {
+  id         String  @id @default(uuid())
+  questionId String  @map("question_id")
+  content    String
+  isCorrect  Boolean @map("is_correct")
+  orderIndex Int     @map("order_index")
+  
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  sessionAnswers SessionAnswer[]
+  
+  @@map("answers")
+}
+
+model EventQuestion {
+  id         String @id @default(uuid())
+  eventId    String @map("event_id")
+  questionId String @map("question_id")
+  orderIndex Int    @map("order_index")
+  
+  event    Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  
+  @@unique([eventId, questionId])
+  @@map("event_questions")
+}
+
+model QuizSession {
+  id            String        @id @default(uuid())
+  userId        String        @map("user_id")
+  eventId       String        @map("event_id")
+  status        SessionStatus @default(IN_PROGRESS)
+  questionsData String        @map("questions_data")
+  startedAt     DateTime      @default(now()) @map("started_at")
+  submittedAt   DateTime?     @map("submitted_at")
+  
+  user    User   @relation(fields: [userId], references: [id])
+  event   Event  @relation(fields: [eventId], references: [id])
+  answers SessionAnswer[]
+  result  QuizResult?
+  
+  @@map("quiz_sessions")
+}
+
+enum SessionStatus {
+  IN_PROGRESS
+  SUBMITTED
+  EXPIRED
+  CANCELLED
+}
+
+model SessionAnswer {
+  id         String   @id @default(uuid())
+  sessionId  String   @map("session_id")
+  questionId String   @map("question_id")
+  answerId   String   @map("answer_id")
+  answeredAt DateTime @default(now()) @map("answered_at")
+  
+  session  QuizSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  question Question    @relation(fields: [questionId], references: [id])
+  answer   Answer      @relation(fields: [answerId], references: [id])
+  
+  @@unique([sessionId, questionId])
+  @@map("session_answers")
+}
+
+model QuizResult {
+  id              String   @id @default(uuid())
+  sessionId       String   @unique @map("session_id")
+  userId          String   @map("user_id")
+  eventId         String   @map("event_id")
+  totalQuestions  Int      @map("total_questions")
+  correctAnswers  Int      @map("correct_answers")
+  score           Decimal
+  passedThreshold Boolean  @map("passed_threshold")
+  completedAt     DateTime @default(now()) @map("completed_at")
+  
+  session  QuizSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user     User        @relation(fields: [userId], references: [id])
+  event    Event       @relation(fields: [eventId], references: [id])
+  spinCode SpinCode?
+  
+  @@map("quiz_results")
+}
+
+model SpinCode {
+  id            String     @id @default(uuid())
+  code          String     @unique
+  userId        String     @map("user_id")
+  eventId       String     @map("event_id")
+  quizResultId  String     @unique @map("quiz_result_id")
+  status        CodeStatus @default(AVAILABLE)
+  createdAt     DateTime   @default(now()) @map("created_at")
+  usedAt        DateTime?  @map("used_at")
+  
+  user       User        @relation(fields: [userId], references: [id])
+  event      Event       @relation(fields: [eventId], references: [id])
+  quizResult QuizResult  @relation(fields: [quizResultId], references: [id])
+  spinResult SpinResult?
+  
+  @@map("spin_codes")
+}
+
+enum CodeStatus {
+  AVAILABLE
+  USED
+  EXPIRED
+  CANCELLED
+}
+
+model SpinResult {
+  id           String   @id @default(uuid())
+  spinCodeId   String   @unique @map("spin_code_id")
+  userId       String   @map("user_id")
+  eventId      String   @map("event_id")
+  amount       Decimal
+  spunAt       DateTime @default(now()) @map("spun_at")
+  
+  spinCode SpinCode @relation(fields: [spinCodeId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+  event    Event    @relation(fields: [eventId], references: [id])
+  
+  @@map("spin_results")
+}

@@ -1,0 +1,1466 @@
+openapi: 3.0.3
+info:
+  title: HRIS - Event Reward Module API
+  description: |
+    API cho Module Thưởng Sự Kiện trong hệ thống HRIS.
+    Module này cho phép nhân viên tham gia làm bài trắc nghiệm và quay thưởng,
+    đồng thời cho phép HR quản lý sự kiện, câu hỏi và xem báo cáo.
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@company.com
+
+servers:
+  - url: https://api.hris.company.com/v1
+    description: Production server
+  - url: https://api-staging.hris.company.com/v1
+    description: Staging server
+  - url: http://localhost:3000/v1
+    description: Local development server
+
+tags:
+  - name: Auth
+    description: Xác thực và phân quyền
+  - name: Events
+    description: Quản lý sự kiện (HR và Employee)
+  - name: Questions
+    description: Quản lý câu hỏi (HR only)
+  - name: Quiz
+    description: Làm bài trắc nghiệm (Employee)
+  - name: Spin
+    description: Quay thưởng (Employee)
+  - name: Reports
+    description: Báo cáo và thống kê (HR)
+  - name: Users
+    description: Quản lý người dùng
+
+security:
+  - BearerAuth: []
+
+paths:
+  # ==================== AUTH ====================
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Đăng nhập
+      description: Đăng nhập vào hệ thống và nhận JWT token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - employee_id
+                - password
+              properties:
+                employee_id:
+                  type: string
+                  example: "EMP001"
+                password:
+                  type: string
+                  format: password
+                  example: "Password123!"
+      responses:
+        '200':
+          description: Đăng nhập thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  refresh_token:
+                    type: string
+                  token_type:
+                    type: string
+                    example: "Bearer"
+                  expires_in:
+                    type: integer
+                    example: 3600
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Auth
+      summary: Làm mới token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        '200':
+          description: Token mới
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  expires_in:
+                    type: integer
+
+  /auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: Đăng xuất
+      responses:
+        '204':
+          description: Đăng xuất thành công
+
+  # ==================== EVENTS ====================
+  /events:
+    get:
+      tags:
+        - Events
+      summary: Lấy danh sách sự kiện
+      description: |
+        - Employee: Chỉ xem sự kiện active
+        - HR: Xem tất cả sự kiện
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, active, paused, completed, cancelled]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Danh sách sự kiện
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Event'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags:
+        - Events
+      summary: Tạo sự kiện mới (HR only)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventCreateRequest'
+      responses:
+        '201':
+          description: Sự kiện được tạo thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /events/{eventId}:
+    get:
+      tags:
+        - Events
+      summary: Lấy chi tiết sự kiện
+      parameters:
+        - $ref: '#/components/parameters/EventId'
+      responses:
+        '200':
+          description: Chi tiết sự kiện
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventDetail'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+    put:
+      tags:
+        - Events
+      summary: Cập nhật sự kiện (HR only)
+      parameters:
+        - $ref: '#/components/parameters/EventId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventUpdateRequest'
+      responses:
+        '200':
+          description: Sự kiện được cập nhật
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+
+    delete:
+      tags:
+        - Events
+      summary: Xóa sự kiện (HR only)
+      parameters:
+        - $ref: '#/components/parameters/EventId'
+      responses:
+        '204':
+          description: Xóa thành công
+        '409':
+          description: Không thể xóa (đã có người tham gia)
+
+  /events/{eventId}/activate:
+    post:
+      tags:
+        - Events
+      summary: Kích hoạt sự kiện (HR only)
+      parameters:
+        - $ref: '#/components/parameters/EventId'
+      responses:
+        '200':
+          description: Kích hoạt thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+
+  /events/{eventId}/pause:
+    post:
+      tags:
+        - Events
+      summary: Tạm dừng sự kiện (HR only)
+      parameters:
+        - $ref: '#/components/parameters/EventId'
+      responses:
+        '200':
+          description: Tạm dừng thành công
+
+  # ==================== QUESTIONS ====================
+  /questions:
+    get:
+      tags:
+        - Questions
+      summary: Lấy danh sách câu hỏi (HR only)
+      parameters:
+        - name: event_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [single_choice, multiple_choice, true_false]
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Danh sách câu hỏi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Question'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags:
+        - Questions
+      summary: Tạo câu hỏi mới (HR only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuestionCreateRequest'
+      responses:
+        '201':
+          description: Câu hỏi được tạo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Question'
+
+  /questions/{questionId}:
+    get:
+      tags:
+        - Questions
+      summary: Lấy chi tiết câu hỏi (HR only)
+      parameters:
+        - $ref: '#/components/parameters/QuestionId'
+      responses:
+        '200':
+          description: Chi tiết câu hỏi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Question'
+
+    put:
+      tags:
+        - Questions
+      summary: Cập nhật câu hỏi (HR only)
+      parameters:
+        - $ref: '#/components/parameters/QuestionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuestionUpdateRequest'
+      responses:
+        '200':
+          description: Câu hỏi được cập nhật
+
+    delete:
+      tags:
+        - Questions
+      summary: Xóa câu hỏi (HR only)
+      parameters:
+        - $ref: '#/components/parameters/QuestionId'
+      responses:
+        '204':
+          description: Xóa thành công
+
+  /events/{eventId}/questions:
+    post:
+      tags:
+        - Questions
+      summary: Thêm câu hỏi vào sự kiện (HR only)
+      parameters:
+        - $ref: '#/components/parameters/EventId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                question_ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        '200':
+          description: Thêm thành công
+
+    delete:
+      tags:
+        - Questions
+      summary: Xóa câu hỏi khỏi sự kiện (HR only)
+      parameters:
+        - $ref: '#/components/parameters/EventId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                question_ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        '200':
+          description: Xóa thành công
+
+  # ==================== QUIZ ====================
+  /quiz/start:
+    post:
+      tags:
+        - Quiz
+      summary: Bắt đầu làm bài
+      description: Tạo phiên làm bài mới cho nhân viên
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - event_id
+              properties:
+                event_id:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: Phiên làm bài được tạo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizSession'
+        '400':
+          description: Sự kiện không active hoặc đã quá số lần làm bài
+        '404':
+          description: Sự kiện không tồn tại
+
+  /quiz/sessions/{sessionId}:
+    get:
+      tags:
+        - Quiz
+      summary: Lấy thông tin phiên làm bài
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+      responses:
+        '200':
+          description: Thông tin phiên làm bài
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizSession'
+
+  /quiz/sessions/{sessionId}/answer:
+    post:
+      tags:
+        - Quiz
+      summary: Trả lời câu hỏi
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - question_id
+                - answer_id
+              properties:
+                question_id:
+                  type: string
+                  format: uuid
+                answer_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Đã lưu câu trả lời
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+  /quiz/sessions/{sessionId}/submit:
+    post:
+      tags:
+        - Quiz
+      summary: Nộp bài
+      description: Nộp bài và nhận kết quả chấm điểm
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+      responses:
+        '200':
+          description: Kết quả chấm điểm
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizResult'
+
+  /quiz/results/{resultId}:
+    get:
+      tags:
+        - Quiz
+      summary: Xem kết quả chi tiết
+      parameters:
+        - name: resultId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Chi tiết kết quả
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizResultDetail'
+
+  /quiz/my-results:
+    get:
+      tags:
+        - Quiz
+      summary: Xem lịch sử làm bài của tôi
+      parameters:
+        - name: event_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Danh sách kết quả
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/QuizResult'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+  # ==================== SPIN ====================
+  /spin/codes:
+    get:
+      tags:
+        - Spin
+      summary: Lấy danh sách mã quay của tôi
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [available, used, expired]
+        - name: event_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Danh sách mã quay
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SpinCode'
+                  summary:
+                    type: object
+                    properties:
+                      total_codes:
+                        type: integer
+                      available_codes:
+                        type: integer
+                      used_codes:
+                        type: integer
+
+  /spin/execute:
+    post:
+      tags:
+        - Spin
+      summary: Quay thưởng
+      description: Sử dụng mã quay để quay thưởng
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code_id
+              properties:
+                code_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Kết quả quay thưởng
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpinResult'
+        '400':
+          description: Mã không hợp lệ hoặc đã sử dụng
+        '409':
+          description: Hết ngân sách
+
+  /spin/history:
+    get:
+      tags:
+        - Spin
+      summary: Lịch sử quay thưởng của tôi
+      parameters:
+        - name: event_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: from_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lịch sử quay thưởng
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SpinResult'
+                  summary:
+                    type: object
+                    properties:
+                      total_spins:
+                        type: integer
+                      total_winnings:
+                        type: number
+                        format: decimal
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+  # ==================== REPORTS ====================
+  /reports/events/{eventId}/dashboard:
+    get:
+      tags:
+        - Reports
+      summary: Dashboard tổng quan sự kiện (HR only)
+      parameters:
+        - $ref: '#/components/parameters/EventId'
+      responses:
+        '200':
+          description: Dữ liệu dashboard
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventDashboard'
+
+  /reports/events/{eventId}/participants:
+    get:
+      tags:
+        - Reports
+      summary: Danh sách người tham gia (HR only)
+      parameters:
+        - $ref: '#/components/parameters/EventId'
+        - name: has_won
+          in: query
+          schema:
+            type: boolean
+        - name: min_score
+          in: query
+          schema:
+            type: number
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Danh sách người tham gia
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ParticipantReport'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+  /reports/events/{eventId}/export:
+    get:
+      tags:
+        - Reports
+      summary: Export báo cáo (HR only)
+      parameters:
+        - $ref: '#/components/parameters/EventId'
+        - name: format
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [excel, pdf, csv]
+      responses:
+        '200':
+          description: File báo cáo
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            text/csv:
+              schema:
+                type: string
+
+  /reports/budget-alerts:
+    get:
+      tags:
+        - Reports
+      summary: Cảnh báo ngân sách (HR only)
+      responses:
+        '200':
+          description: Danh sách sự kiện cần cảnh báo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        event_id:
+                          type: string
+                          format: uuid
+                        event_name:
+                          type: string
+                        remaining_budget:
+                          type: number
+                        remaining_percent:
+                          type: number
+                        alert_level:
+                          type: string
+                          enum: [warning, critical]
+
+  # ==================== USERS ====================
+  /users/me:
+    get:
+      tags:
+        - Users
+      summary: Thông tin user hiện tại
+      responses:
+        '200':
+          description: Thông tin user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /users/me/stats:
+    get:
+      tags:
+        - Users
+      summary: Thống kê cá nhân
+      responses:
+        '200':
+          description: Thống kê
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_events_participated:
+                    type: integer
+                  total_quizzes_completed:
+                    type: integer
+                  average_score:
+                    type: number
+                  total_spin_codes:
+                    type: integer
+                  total_spins:
+                    type: integer
+                  total_winnings:
+                    type: number
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    EventId:
+      name: eventId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    QuestionId:
+      name: questionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    SessionId:
+      name: sessionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        employee_id:
+          type: string
+        full_name:
+          type: string
+        email:
+          type: string
+          format: email
+        department:
+          type: string
+        position:
+          type: string
+        role:
+          type: string
+          enum: [employee, hr_manager, admin]
+        created_at:
+          type: string
+          format: date-time
+
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [draft, active, paused, completed, cancelled]
+        start_date:
+          type: string
+          format: date-time
+        end_date:
+          type: string
+          format: date-time
+        created_by:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    EventDetail:
+      allOf:
+        - $ref: '#/components/schemas/Event'
+        - type: object
+          properties:
+            config:
+              $ref: '#/components/schemas/EventConfig'
+            budget:
+              $ref: '#/components/schemas/EventBudget'
+            question_count:
+              type: integer
+            participant_count:
+              type: integer
+
+    EventConfig:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        event_id:
+          type: string
+          format: uuid
+        min_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        question_count:
+          type: integer
+          minimum: 5
+        prize_min:
+          type: number
+          format: decimal
+        prize_max:
+          type: number
+          format: decimal
+        max_attempts_per_day:
+          type: integer
+          nullable: true
+        time_limit_minutes:
+          type: integer
+          nullable: true
+        shuffle_questions:
+          type: boolean
+        shuffle_answers:
+          type: boolean
+
+    EventBudget:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        event_id:
+          type: string
+          format: uuid
+        total_budget:
+          type: number
+          format: decimal
+        used_budget:
+          type: number
+          format: decimal
+        remaining_budget:
+          type: number
+          format: decimal
+        total_spins:
+          type: integer
+        alert_threshold:
+          type: number
+          format: decimal
+        last_updated:
+          type: string
+          format: date-time
+
+    EventCreateRequest:
+      type: object
+      required:
+        - name
+        - start_date
+        - end_date
+        - config
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 200
+        description:
+          type: string
+        start_date:
+          type: string
+          format: date-time
+        end_date:
+          type: string
+          format: date-time
+        config:
+          type: object
+          required:
+            - min_score
+            - question_count
+            - prize_min
+            - prize_max
+            - total_budget
+          properties:
+            min_score:
+              type: integer
+            question_count:
+              type: integer
+            prize_min:
+              type: number
+            prize_max:
+              type: number
+            total_budget:
+              type: number
+            max_attempts_per_day:
+              type: integer
+            time_limit_minutes:
+              type: integer
+            shuffle_questions:
+              type: boolean
+              default: true
+            shuffle_answers:
+              type: boolean
+              default: true
+
+    EventUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        start_date:
+          type: string
+          format: date-time
+        end_date:
+          type: string
+          format: date-time
+
+    Question:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        content:
+          type: string
+        type:
+          type: string
+          enum: [single_choice, multiple_choice, true_false]
+        media_url:
+          type: string
+          nullable: true
+        answers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Answer'
+        created_by:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+
+    Answer:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        content:
+          type: string
+        order_index:
+          type: integer
+
+    QuestionCreateRequest:
+      type: object
+      required:
+        - content
+        - type
+        - answers
+      properties:
+        content:
+          type: string
+        type:
+          type: string
+          enum: [single_choice, multiple_choice, true_false]
+        media_url:
+          type: string
+        answers:
+          type: array
+          minItems: 2
+          items:
+            type: object
+            required:
+              - content
+              - is_correct
+            properties:
+              content:
+                type: string
+              is_correct:
+                type: boolean
+
+    QuestionUpdateRequest:
+      type: object
+      properties:
+        content:
+          type: string
+        media_url:
+          type: string
+        answers:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              content:
+                type: string
+              is_correct:
+                type: boolean
+
+    QuizSession:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        event_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [in_progress, submitted, expired, cancelled]
+        questions:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              content:
+                type: string
+              type:
+                type: string
+              media_url:
+                type: string
+              answers:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    content:
+                      type: string
+        started_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        time_spent_seconds:
+          type: integer
+
+    QuizResult:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        session_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        event_id:
+          type: string
+          format: uuid
+        total_questions:
+          type: integer
+        correct_answers:
+          type: integer
+        score:
+          type: number
+          format: decimal
+        passed_threshold:
+          type: boolean
+        spin_code_id:
+          type: string
+          format: uuid
+          nullable: true
+        completed_at:
+          type: string
+          format: date-time
+
+    QuizResultDetail:
+      allOf:
+        - $ref: '#/components/schemas/QuizResult'
+        - type: object
+          properties:
+            detailed_results:
+              type: array
+              items:
+                type: object
+                properties:
+                  question_id:
+                    type: string
+                  question_content:
+                    type: string
+                  selected_answer_id:
+                    type: string
+                  is_correct:
+                    type: boolean
+
+    SpinCode:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+        user_id:
+          type: string
+          format: uuid
+        event_id:
+          type: string
+          format: uuid
+        event_name:
+          type: string
+        quiz_result_id:
+          type: string
+          format: uuid
+        quiz_score:
+          type: number
+        status:
+          type: string
+          enum: [available, used, expired, cancelled]
+        created_at:
+          type: string
+          format: date-time
+        used_at:
+          type: string
+          format: date-time
+          nullable: true
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    SpinResult:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        spin_code_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        event_id:
+          type: string
+          format: uuid
+        event_name:
+          type: string
+        amount:
+          type: number
+          format: decimal
+        transaction_id:
+          type: string
+          nullable: true
+        payment_status:
+          type: string
+          enum: [pending, processed, failed]
+        spun_at:
+          type: string
+          format: date-time
+
+    EventDashboard:
+      type: object
+      properties:
+        event:
+          $ref: '#/components/schemas/EventDetail'
+        statistics:
+          type: object
+          properties:
+            total_participants:
+              type: integer
+            total_attempts:
+              type: integer
+            completed_quizzes:
+              type: integer
+            average_score:
+              type: number
+            pass_rate:
+              type: number
+            total_codes_issued:
+              type: integer
+            total_spins:
+              type: integer
+            total_paid:
+              type: number
+            average_prize:
+              type: number
+        score_distribution:
+          type: array
+          items:
+            type: object
+            properties:
+              range:
+                type: string
+              count:
+                type: integer
+        daily_stats:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              participants:
+                type: integer
+              quizzes:
+                type: integer
+              spins:
+                type: integer
+              amount:
+                type: number
+
+    ParticipantReport:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        employee_id:
+          type: string
+        full_name:
+          type: string
+        department:
+          type: string
+        total_attempts:
+          type: integer
+        completed_quizzes:
+          type: integer
+        average_score:
+          type: number
+        best_score:
+          type: number
+        total_spin_codes:
+          type: integer
+        total_spins:
+          type: integer
+        total_winnings:
+          type: number
+        last_attempt_at:
+          type: string
+          format: date-time
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        total_pages:
+          type: integer
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+
+  responses:
+    UnauthorizedError:
+      description: Chưa xác thực
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "UNAUTHORIZED"
+              message: "Token không hợp lệ hoặc đã hết hạn"
+
+    ForbiddenError:
+      description: Không có quyền
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "FORBIDDEN"
+              message: "Bạn không có quyền thực hiện thao tác này"
+
+    NotFoundError:
+      description: Không tìm thấy
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "NOT_FOUND"
+              message: "Resource không tồn tại"
+
+    ValidationError:
+      description: Dữ liệu không hợp lệ
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "VALIDATION_ERROR"
+              message: "Dữ liệu đầu vào không hợp lệ"
+              details:
+                field: "email"
+                issue: "Email không đúng định dạng"
