@@ -53,12 +53,12 @@ export default function SpinPage() {
       const targetRotation = 360 * 5 + (prizeIndex * (360 / PRIZES.length))
       animateSpin(targetRotation, () => {
         setResult({
-          prize: `$${data.amount}`,
+          prize: `${data.amount.toLocaleString('vi-VN')}đ`,
           amount: data.amount,
         })
         toast({
           title: 'Congratulations!',
-          description: `You won: $${data.amount}`,
+          description: `You won: ${data.amount.toLocaleString('vi-VN')}đ`,
         })
       })
     },
@@ -190,7 +190,7 @@ export default function SpinPage() {
                   <p className="text-2xl font-bold text-green-700">{result.prize}</p>
                 </div>
                 <Button
-                  className="w-full border transition-all duration-200 hover:scale-105 active:scale-95"
+                  className="w-full border transition-all duration-200 hover:bg-neutral-400 hover:text-white"
                   onClick={() => navigate('/employee/dashboard')}
                 >
                   Back to Dashboard
@@ -199,7 +199,7 @@ export default function SpinPage() {
             ) : (
               <Button
                 size="lg"
-                className="w-full border transition-all duration-200 hover:scale-105 active:scale-95"
+                className="w-full border transition-all duration-200 hover:bg-neutral-400 hover:text-white"
                 onClick={handleSpin}
                 disabled={isSpinning || spin.isPending}
               >

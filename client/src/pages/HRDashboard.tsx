@@ -317,7 +317,7 @@ export default function HRDashboard() {
                           <TableCell className="font-medium">{spin.user?.fullName}</TableCell>
                           <TableCell>{spin.event}</TableCell>
                           <TableCell className="text-green-600 font-semibold">
-                            ${parseFloat(spin.amount).toFixed(2)}
+                            {parseFloat(spin.amount).toLocaleString('vi-VN')}đ
                           </TableCell>
                           <TableCell className="text-right">
                             {formatDateVN(spin.spunAt)}

@@ -224,7 +224,7 @@ export default function Reports() {
                        <p className="text-xs text-gray-600">{spin.event}</p>
                      </div>
                      <div className="text-right">
-                       <p className="text-sm font-bold text-green-600">${spin.amount}</p>
+                       <p className="text-sm font-bold text-green-600">{spin.amount.toLocaleString('vi-VN')}đ</p>
                        <p className="text-xs text-gray-600">
                          {formatDateTimeVN(spin.spunAt)}
                        </p>
