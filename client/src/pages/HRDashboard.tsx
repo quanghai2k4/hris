@@ -185,11 +185,10 @@ export default function HRDashboard() {
                     </TableHeader>
                     <TableBody>
                       {events.length > 0 ? (
-                        events.slice(0, 5).map((event: any, index: number) => (
+                        events.slice(0, 5).map((event: any) => (
                           <TableRow 
                             key={event.id} 
                             className="cursor-pointer hover:bg-muted/50 animate-in fade-in-0 slide-in-from-left-2 duration-300"
-                            style={{ animationDelay: `${index * 50}ms` }}
                           >
                             <TableCell className="font-medium">{event.name}</TableCell>
                             <TableCell>{getStatusBadge(event.status)}</TableCell>
@@ -223,7 +222,6 @@ export default function HRDashboard() {
                         <div 
                           key={participant.userId} 
                           className="flex items-center animate-in fade-in-0 slide-in-from-right-2 duration-300"
-                          style={{ animationDelay: `${index * 75}ms` }}
                         >
                           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
                             <span className="text-sm font-medium">#{index + 1}</span>
@@ -237,7 +235,7 @@ export default function HRDashboard() {
                             </p>
                           </div>
                           <div className="ml-auto font-medium">
-                            <Badge variant="outline">{participant.totalQuizzes} quizzes</Badge>
+                            <Badge variant="outline">1 quiz</Badge>
                           </div>
                         </div>
                       ))
@@ -258,7 +256,7 @@ export default function HRDashboard() {
                   <CardDescription>Create and manage quiz events</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button className="w-full border transition-all duration-200 hover:scale-105 active:scale-95">
+                  <Button className="w-full border transition-all duration-200 hover:bg-neutral-400 hover:text-white">
                     <Calendar className="mr-2 h-4 w-4" />
                     Manage Events
                   </Button>
@@ -271,7 +269,7 @@ export default function HRDashboard() {
                   <CardDescription>View detailed reports and statistics</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button className="w-full border transition-all duration-200 hover:scale-105 active:scale-95">
+                  <Button className="w-full border transition-all duration-200 hover:bg-neutral-400 hover:text-white">
                     <BarChart className="mr-2 h-4 w-4" />
                     View Reports
                   </Button>
@@ -284,7 +282,7 @@ export default function HRDashboard() {
                   <CardDescription>Manage users and permissions</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button className="w-full border transition-all duration-200 hover:scale-105 active:scale-95">
+                  <Button className="w-full border transition-all duration-200 hover:bg-neutral-400 hover:text-white">
                     <Users className="mr-2 h-4 w-4" />
                     Manage Users
                   </Button>
@@ -311,14 +309,13 @@ export default function HRDashboard() {
                   </TableHeader>
                   <TableBody>
                     {recentSpins.length > 0 ? (
-                      recentSpins.map((spin: any, index: number) => (
+                      recentSpins.map((spin: any) => (
                         <TableRow 
                           key={spin.id}
                           className="animate-in fade-in-0 slide-in-from-bottom-2 duration-300"
-                          style={{ animationDelay: `${index * 50}ms` }}
                         >
-                          <TableCell className="font-medium">{spin.userName}</TableCell>
-                          <TableCell>{spin.eventName}</TableCell>
+                          <TableCell className="font-medium">{spin.user?.fullName}</TableCell>
+                          <TableCell>{spin.event}</TableCell>
                           <TableCell className="text-green-600 font-semibold">
                             ${parseFloat(spin.amount).toFixed(2)}
                           </TableCell>

@@ -7,9 +7,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Dialog, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogPortal } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { formatDateVN } from '@/lib/datetime'
-import * as DialogPrimitive from "@radix-ui/react-dialog"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,7 +22,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { X, Plus, Edit, Trash2, Calendar as CalendarIcon, BarChart, Home, Users } from 'lucide-react'
+import { Plus, Edit, Trash2, Calendar as CalendarIcon, BarChart, Home, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from '@/hooks/use-toast'
 import { format } from 'date-fns'
@@ -136,9 +135,7 @@ export default function EventManagement() {
     },
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    
+  const handleSubmit = () => {
     const submitData = {
       ...formData,
       startDate: startDate ? format(startDate, 'yyyy-MM-dd') : '',
@@ -165,24 +162,19 @@ export default function EventManagement() {
           </div>
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
-              <Button className="border transition-all duration-200 hover:scale-105 active:scale-95">
+              <Button className="border transition-all duration-200 hover:bg-neutral-400 hover:text-white">
                 <Plus className="mr-2 h-4 w-4" />
                 Create Event
               </Button>
             </DialogTrigger>
-            <DialogPortal>
-              <DialogPrimitive.Content
-                className={cn(
-                  "fixed left-[50%] top-[50%] z-[100] grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-white p-6 shadow-2xl duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg"
-                )}
-              >
+            <DialogContent className="bg-white max-w-lg">
               <DialogHeader>
                 <DialogTitle>Create New Event</DialogTitle>
                 <DialogDescription>
                   Create a new quiz event for employees
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Event Name</Label>
                   <Input
@@ -255,16 +247,16 @@ export default function EventManagement() {
                     <p className="text-sm text-red-600">End date must be after start date</p>
                   )}
                 </div>
-                <Button type="submit" className="w-full border transition-all duration-200 hover:scale-105 active:scale-95" disabled={createEvent.isPending || (endDate !== undefined && startDate !== undefined && endDate < startDate)}>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsCreateOpen(false)} className="transition-all duration-200 hover:bg-neutral-400 hover:text-white">
+                  Cancel
+                </Button>
+                <Button onClick={handleSubmit} className="border transition-all duration-200 hover:bg-neutral-400 hover:text-white" disabled={createEvent.isPending || (endDate !== undefined && startDate !== undefined && endDate < startDate)}>
                   {createEvent.isPending ? 'Creating...' : 'Create Event'}
                 </Button>
-              </form>
-              <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-                <X className="h-4 w-4" />
-                <span className="sr-only">Close</span>
-              </DialogPrimitive.Close>
-            </DialogPrimitive.Content>
-            </DialogPortal>
+              </DialogFooter>
+            </DialogContent>
           </Dialog>
         </div>
 
@@ -313,7 +305,7 @@ export default function EventManagement() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="transition-all duration-200 hover:scale-105 active:scale-95"
+                        className="transition-all duration-200 hover:bg-neutral-400 hover:text-white"
                         onClick={() =>
                           toggleEventStatus.mutate({
                             id: event.id,
@@ -329,7 +321,7 @@ export default function EventManagement() {
                           <Button
                             variant="destructive"
                             size="sm"
-                            className="border transition-all duration-200 hover:scale-105 active:scale-95"
+                            className="border transition-all duration-200 hover:bg-neutral-400 hover:text-white"
                             disabled={event.status === 'ACTIVE'}
                             title={event.status === 'ACTIVE' ? 'Deactivate the event before deleting' : 'Delete event'}
                           >
@@ -346,11 +338,11 @@ export default function EventManagement() {
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel className="border transition-all duration-200 hover:scale-105 active:scale-95">
+                            <AlertDialogCancel className="border transition-all duration-200 hover:bg-neutral-400 hover:text-white">
                               Cancel
                             </AlertDialogCancel>
                             <AlertDialogAction
-                              className="border transition-all duration-200 hover:scale-105 active:scale-95"
+                              className="border transition-all duration-200 hover:bg-neutral-400 hover:text-white"
                               onClick={() => deleteEvent.mutate(event.id)}
                             >
                               Delete

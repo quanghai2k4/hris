@@ -79,7 +79,7 @@ export default function Reports() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 transition-shadow hover:shadow-lg" style={{ animationDelay: '0ms' }}>
+          <Card className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 transition-shadow hover:shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Events</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
@@ -92,7 +92,7 @@ export default function Reports() {
             </CardContent>
           </Card>
 
-          <Card className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 transition-shadow hover:shadow-lg" style={{ animationDelay: '75ms' }}>
+          <Card className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 transition-shadow hover:shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Quiz Results</CardTitle>
               <Trophy className="h-4 w-4 text-muted-foreground" />
@@ -105,7 +105,7 @@ export default function Reports() {
             </CardContent>
           </Card>
 
-          <Card className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 transition-shadow hover:shadow-lg" style={{ animationDelay: '150ms' }}>
+          <Card className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 transition-shadow hover:shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pass Rate</CardTitle>
               <Award className="h-4 w-4 text-muted-foreground" />
@@ -120,7 +120,7 @@ export default function Reports() {
             </CardContent>
           </Card>
 
-          <Card className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 transition-shadow hover:shadow-lg" style={{ animationDelay: '300ms' }}>
+          <Card className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 transition-shadow hover:shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Spins</CardTitle>
               <Award className="h-4 w-4 text-muted-foreground" />
@@ -135,7 +135,7 @@ export default function Reports() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <Card className="animate-in fade-in-0 slide-in-from-left-4 duration-500 transition-shadow hover:shadow-lg" style={{ animationDelay: '400ms' }}>
+          <Card className="animate-in fade-in-0 slide-in-from-left-4 duration-500 transition-shadow hover:shadow-lg">
             <CardHeader>
               <CardTitle>Event Statistics</CardTitle>
               <CardDescription>Overview of all events</CardDescription>
@@ -143,11 +143,10 @@ export default function Reports() {
             <CardContent>
               {reportData?.events && reportData.events.length > 0 ? (
                 <div className="space-y-4">
-                  {reportData.events.map((event: any, index: number) => (
+                  {reportData.events.map((event: any) => (
                     <div
                       key={event.id}
                       className="flex justify-between items-center p-3 border rounded-lg animate-in fade-in-0 slide-in-from-left-2 duration-300"
-                      style={{ animationDelay: `${index * 50}ms` }}
                     >
                       <div>
                         <p className="text-sm font-medium">{event.name}</p>
@@ -166,7 +165,7 @@ export default function Reports() {
             </CardContent>
           </Card>
 
-          <Card className="animate-in fade-in-0 slide-in-from-right-4 duration-500 transition-shadow hover:shadow-lg" style={{ animationDelay: '400ms' }}>
+          <Card className="animate-in fade-in-0 slide-in-from-right-4 duration-500 transition-shadow hover:shadow-lg">
             <CardHeader>
               <CardTitle>Recent Quiz Results</CardTitle>
               <CardDescription>Latest quiz completions</CardDescription>
@@ -174,14 +173,13 @@ export default function Reports() {
             <CardContent>
               {reportData?.topParticipants && reportData.topParticipants.length > 0 ? (
                 <div className="space-y-3">
-                  {reportData.topParticipants.slice(0, 10).map((result: any, index: number) => (
+                  {reportData.topParticipants.slice(0, 10).map((result: any) => (
                     <div
-                      key={result.user.id + result.completedAt}
+                      key={result.userId + result.completedAt}
                       className="flex justify-between items-center p-3 border rounded-lg animate-in fade-in-0 slide-in-from-right-2 duration-300"
-                      style={{ animationDelay: `${index * 50}ms` }}
                     >
                       <div>
-                        <p className="text-sm font-medium">{result.user.fullName}</p>
+                        <p className="text-sm font-medium">{result.fullName}</p>
                         <p className="text-xs text-gray-600">
                           {formatDateTimeVN(result.completedAt)}
                         </p>
@@ -208,7 +206,7 @@ export default function Reports() {
           </Card>
         </div>
 
-        <Card className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 transition-shadow hover:shadow-lg" style={{ animationDelay: '500ms' }}>
+        <Card className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 transition-shadow hover:shadow-lg">
           <CardHeader>
             <CardTitle>Spin Results</CardTitle>
             <CardDescription>Recent spin outcomes</CardDescription>
@@ -220,17 +218,17 @@ export default function Reports() {
                   <div
                     key={idx}
                     className="flex justify-between items-center p-3 border rounded-lg animate-in fade-in-0 slide-in-from-bottom-2 duration-300"
-                    style={{ animationDelay: `${idx * 50}ms` }}
                   >
-                    <div>
-                      <p className="text-sm font-medium">{spin.event || 'Unknown Event'}</p>
-                      <p className="text-xs text-gray-600">
-                        {formatDateTimeVN(spin.spunAt)}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-sm font-bold text-green-600">${spin.amount}</span>
-                    </div>
+                     <div className="flex-1">
+                       <p className="text-sm font-medium">{spin.fullName}</p>
+                       <p className="text-xs text-gray-600">{spin.event}</p>
+                     </div>
+                     <div className="text-right">
+                       <p className="text-sm font-bold text-green-600">${spin.amount}</p>
+                       <p className="text-xs text-gray-600">
+                         {formatDateTimeVN(spin.spunAt)}
+                       </p>
+                     </div>
                   </div>
                 ))}
               </div>

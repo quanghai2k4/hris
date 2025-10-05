@@ -188,7 +188,7 @@ export default function UserManagement() {
             <h2 className="text-3xl font-bold tracking-tight">User Management</h2>
             <p className="text-muted-foreground">Manage system users and permissions</p>
           </div>
-          <Button onClick={() => setCreateDialogOpen(true)} className="border transition-all duration-200 hover:scale-105 active:scale-95">
+          <Button onClick={() => setCreateDialogOpen(true)} className="border transition-all duration-200 hover:bg-neutral-400 hover:text-white">
             <Plus className="mr-2 h-4 w-4" />
             Add User
           </Button>
@@ -229,7 +229,7 @@ export default function UserManagement() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleEdit(user)}
-                              className="hover:bg-muted transition-all duration-300 hover:border hover:scale-105"
+                              className="hover:bg-neutral-400 hover:text-white transition-all duration-200"
                             >
                               <Pencil className="mr-2 h-4 w-4" />
                               Edit
@@ -238,9 +238,9 @@ export default function UserManagement() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDelete(user)}
-                              className="hover:bg-destructive/10 transition-all duration-300 hover:border hover:scale-105"
+                              className="hover:bg-neutral-400 hover:text-white transition-all duration-200"
                             >
-                              <Trash2 className="mr-2 h-4 w-4 text-destructive" />
+                              <Trash2 className="mr-2 h-4 w-4" />
                               Delete
                             </Button>
                           </div>
@@ -262,7 +262,7 @@ export default function UserManagement() {
       </div>
 
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent>
+        <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle>Create New User</DialogTitle>
             <DialogDescription>Add a new user to the system</DialogDescription>
@@ -320,15 +320,15 @@ export default function UserManagement() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateDialogOpen(false)} className="transition-all duration-200 hover:scale-105 active:scale-95">
+            <Button variant="outline" onClick={() => setCreateDialogOpen(false)} className="transition-all duration-200 hover:bg-neutral-400 hover:text-white">
               Cancel
             </Button>
-            <Button onClick={handleCreate} className="border transition-all duration-200 hover:scale-105 active:scale-95">Create User</Button>
+            <Button onClick={handleCreate} className="border transition-all duration-200 hover:bg-neutral-400 hover:text-white">Create User</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen} modal={false}>
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
@@ -388,10 +388,10 @@ export default function UserManagement() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditDialogOpen(false)} className="transition-all duration-200 hover:scale-105 active:scale-95">
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)} className="transition-all duration-200 hover:bg-neutral-400 hover:text-white">
               Cancel
             </Button>
-            <Button onClick={handleUpdate} className="border transition-all duration-200 hover:scale-105 active:scale-95">Update User</Button>
+            <Button onClick={handleUpdate} className="border transition-all duration-200 hover:bg-neutral-400 hover:text-white">Update User</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -405,8 +405,8 @@ export default function UserManagement() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
+            <AlertDialogCancel className="transition-all duration-200 hover:bg-neutral-400 hover:text-white">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="border transition-all duration-200 hover:bg-neutral-400 hover:text-white">Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
