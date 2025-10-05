@@ -143,7 +143,7 @@ model QuizSession {
   submittedAt   DateTime?     @map("submitted_at")
   
   user    User   @relation(fields: [userId], references: [id])
-  event   Event  @relation(fields: [eventId], references: [id])
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
   answers SessionAnswer[]
   result  QuizResult?
   
@@ -185,7 +185,7 @@ model QuizResult {
   
   session  QuizSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   user     User        @relation(fields: [userId], references: [id])
-  event    Event       @relation(fields: [eventId], references: [id])
+  event    Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
   spinCode SpinCode?
   
   @@map("quiz_results")
@@ -202,7 +202,7 @@ model SpinCode {
   usedAt        DateTime?  @map("used_at")
   
   user       User        @relation(fields: [userId], references: [id])
-  event      Event       @relation(fields: [eventId], references: [id])
+  event      Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
   quizResult QuizResult  @relation(fields: [quizResultId], references: [id])
   spinResult SpinResult?
   
@@ -226,7 +226,7 @@ model SpinResult {
   
   spinCode SpinCode @relation(fields: [spinCodeId], references: [id])
   user     User     @relation(fields: [userId], references: [id])
-  event    Event    @relation(fields: [eventId], references: [id])
+  event    Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   
   @@map("spin_results")
 }

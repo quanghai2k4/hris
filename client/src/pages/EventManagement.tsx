@@ -1,22 +1,38 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
 import { api } from '@/lib/api'
 import type { Event } from '@/types'
+import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogPortal } from '@/components/ui/dialog'
+import { formatDateVN } from '@/lib/datetime'
 import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { X, ArrowLeft, Plus, Edit, Trash2 } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { X, Plus, Edit, Trash2, Calendar as CalendarIcon, BarChart, Home, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from '@/hooks/use-toast'
+import { format } from 'date-fns'
 
 export default function EventManagement() {
-  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [startDate, setStartDate] = useState<Date | undefined>(new Date())
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined)
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -55,6 +71,8 @@ export default function EventManagement() {
       queryClient.invalidateQueries({ queryKey: ['events'] })
       queryClient.refetchQueries({ queryKey: ['events'] })
       setIsCreateOpen(false)
+      setStartDate(new Date())
+      setEndDate(undefined)
       setFormData({ 
         name: '', 
         description: '', 
@@ -109,107 +127,153 @@ export default function EventManagement() {
         description: 'The event has been deleted successfully',
       })
     },
+    onError: (error: any) => {
+      toast({
+        variant: 'destructive',
+        title: 'Cannot delete event',
+        description: error.response?.data?.message || 'Please deactivate the event first or check if it has existing results',
+      })
+    },
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    createEvent.mutate(formData)
+    
+    const submitData = {
+      ...formData,
+      startDate: startDate ? format(startDate, 'yyyy-MM-dd') : '',
+      endDate: endDate ? format(endDate, 'yyyy-MM-dd') : '',
+    }
+    
+    createEvent.mutate(submitData)
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/hr/dashboard')}
-            className="mb-2"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
-          </Button>
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">Event Management</h1>
-            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create Event
-                </Button>
-              </DialogTrigger>
-              <DialogPortal>
-                <DialogPrimitive.Content
-                  className={cn(
-                    "fixed left-[50%] top-[50%] z-[100] grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-white p-6 shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg"
-                  )}
-                >
-                <DialogHeader>
-                  <DialogTitle>Create New Event</DialogTitle>
-                  <DialogDescription>
-                    Create a new quiz event for employees
-                  </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Event Name</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
-                    <Input
-                      id="description"
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="startDate">Start Date</Label>
-                    <Input
-                      id="startDate"
-                      type="date"
-                      value={formData.startDate}
-                      onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="endDate">End Date</Label>
-                    <Input
-                      id="endDate"
-                      type="date"
-                      value={formData.endDate}
-                      onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={createEvent.isPending}>
-                    {createEvent.isPending ? 'Creating...' : 'Create Event'}
-                  </Button>
-                </form>
-                <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-                  <X className="h-4 w-4" />
-                  <span className="sr-only">Close</span>
-                </DialogPrimitive.Close>
-              </DialogPrimitive.Content>
-              </DialogPortal>
-            </Dialog>
-          </div>
-        </div>
-      </header>
+  const navItems = [
+    { title: 'Dashboard', href: '/hr/dashboard', icon: Home },
+    { title: 'Event Management', href: '/hr/events', icon: CalendarIcon },
+    { title: 'Reports', href: '/hr/reports', icon: BarChart },
+    { title: 'User Management', href: '/hr/users', icon: Users },
+  ]
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  return (
+    <DashboardLayout navItems={navItems}>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Event Management</h2>
+            <p className="text-muted-foreground">Create and manage quiz events</p>
+          </div>
+          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <DialogTrigger asChild>
+              <Button className="border transition-all duration-200 hover:scale-105 active:scale-95">
+                <Plus className="mr-2 h-4 w-4" />
+                Create Event
+              </Button>
+            </DialogTrigger>
+            <DialogPortal>
+              <DialogPrimitive.Content
+                className={cn(
+                  "fixed left-[50%] top-[50%] z-[100] grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-white p-6 shadow-2xl duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg"
+                )}
+              >
+              <DialogHeader>
+                <DialogTitle>Create New Event</DialogTitle>
+                <DialogDescription>
+                  Create a new quiz event for employees
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Event Name</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Input
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="startDate">Start Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !startDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {startDate ? format(startDate, 'PPP') : 'Pick a date'}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 bg-white z-[200]" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={startDate}
+                        onSelect={setStartDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                 <div className="space-y-2">
+                  <Label htmlFor="endDate">End Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !endDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {endDate ? format(endDate, 'PPP') : 'Pick a date'}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 bg-white z-[200]" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={endDate}
+                        onSelect={setEndDate}
+                        disabled={(date) => startDate ? date < startDate : false}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  {endDate && startDate && endDate < startDate && (
+                    <p className="text-sm text-red-600">End date must be after start date</p>
+                  )}
+                </div>
+                <Button type="submit" className="w-full border transition-all duration-200 hover:scale-105 active:scale-95" disabled={createEvent.isPending || (endDate !== undefined && startDate !== undefined && endDate < startDate)}>
+                  {createEvent.isPending ? 'Creating...' : 'Create Event'}
+                </Button>
+              </form>
+              <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+                <X className="h-4 w-4" />
+                <span className="sr-only">Close</span>
+              </DialogPrimitive.Close>
+            </DialogPrimitive.Content>
+            </DialogPortal>
+          </Dialog>
+        </div>
+
         {isLoading ? (
           <p>Loading events...</p>
         ) : events && events.length > 0 ? (
           <div className="grid gap-4">
             {events.map((event) => (
-              <Card key={event.id}>
+              <Card key={event.id} className="transition-shadow hover:shadow-lg">
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div>
@@ -235,13 +299,13 @@ export default function EventManagement() {
                       <div>
                         <p className="text-gray-600">Start Date</p>
                         <p className="font-medium">
-                          {new Date(event.startDate).toLocaleDateString()}
+                          {formatDateVN(event.startDate)}
                         </p>
                       </div>
                       <div>
                         <p className="text-gray-600">End Date</p>
                         <p className="font-medium">
-                          {new Date(event.endDate).toLocaleDateString()}
+                          {formatDateVN(event.endDate)}
                         </p>
                       </div>
                     </div>
@@ -249,6 +313,7 @@ export default function EventManagement() {
                       <Button
                         variant="outline"
                         size="sm"
+                        className="transition-all duration-200 hover:scale-105 active:scale-95"
                         onClick={() =>
                           toggleEventStatus.mutate({
                             id: event.id,
@@ -257,20 +322,42 @@ export default function EventManagement() {
                         }
                       >
                         <Edit className="mr-2 h-4 w-4" />
-                        {event.status === 'ACTIVE' ? 'Pause' : 'Activate'}
+                        {event.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
                       </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => {
-                          if (confirm('Are you sure you want to delete this event?')) {
-                            deleteEvent.mutate(event.id)
-                          }
-                        }}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="border transition-all duration-200 hover:scale-105 active:scale-95"
+                            disabled={event.status === 'ACTIVE'}
+                            title={event.status === 'ACTIVE' ? 'Deactivate the event before deleting' : 'Delete event'}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete the event
+                              and all associated data.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="border transition-all duration-200 hover:scale-105 active:scale-95">
+                              Cancel
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              className="border transition-all duration-200 hover:scale-105 active:scale-95"
+                              onClick={() => deleteEvent.mutate(event.id)}
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 </CardContent>
@@ -278,13 +365,13 @@ export default function EventManagement() {
             ))}
           </div>
         ) : (
-          <Card>
+          <Card className="transition-shadow hover:shadow-lg">
             <CardContent className="pt-6">
               <p className="text-center text-gray-600">No events found</p>
             </CardContent>
           </Card>
         )}
-      </main>
-    </div>
+      </div>
+    </DashboardLayout>
   )
 }

@@ -38,7 +38,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-4 duration-500 transition-shadow hover:shadow-lg">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">HRIS Login</CardTitle>
           <CardDescription>
@@ -73,7 +73,7 @@ export default function LoginPage() {
               />
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" className="w-full border transition-all duration-200 hover:scale-105 active:scale-95" disabled={isLoading}>
               {isLoading ? 'Logging in...' : 'Login'}
             </Button>
           </form>

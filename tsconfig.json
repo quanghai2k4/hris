@@ -4,7 +4,8 @@
     "outDir": "dist",
     "module": "esnext",
     "target": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
     "types": ["node"],
     "lib": ["es6"],
     "sourceMap": true,
@@ -23,6 +24,7 @@
     "resolveJsonModule": true,
     "allowJs": true,
     "noImplicitAny": true,
+    "noEmit": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "prisma"]

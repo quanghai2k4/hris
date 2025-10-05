@@ -46,22 +46,28 @@ export const startQuiz = async (userId: string, eventId: string) => {
     throw createError(400, 'Event is not active');
   }
 
-  const now = new Date();
-  if (now < event.startDate || now > event.endDate) {
+  const nowUTC = new Date();
+  const nowVN = new Date(nowUTC.toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }));
+  
+  const startUTC = new Date(event.startDate);
+  const endUTC = new Date(event.endDate);
+  const startVN = new Date(startUTC.toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }));
+  const endVN = new Date(endUTC.toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }));
+  
+  startVN.setHours(0, 0, 0, 0);
+  endVN.setHours(23, 59, 59, 999);
+  
+  if (nowVN < startVN || nowVN > endVN) {
     throw createError(400, 'Event is not currently running');
   }
 
-  const existingSession = await prisma.quizSession.findFirst({
+  await prisma.quizSession.deleteMany({
     where: {
       userId,
       eventId,
       status: 'IN_PROGRESS',
     },
   });
-
-  if (existingSession) {
-    throw createError(400, 'You already have an active quiz session for this event');
-  }
 
   const existingResult = await prisma.quizResult.findFirst({
     where: {

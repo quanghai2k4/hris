@@ -1,13 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
 import { api } from '@/lib/api'
-import { Button } from '@/components/ui/button'
+import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowLeft, Users, Award, Trophy } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Calendar, BarChart, Home, Users, Award, Trophy } from 'lucide-react'
+import { formatDateTimeVN } from '@/lib/datetime'
 
 export default function Reports() {
-  const navigate = useNavigate()
-
   const { data: reportData, isLoading } = useQuery({
     queryKey: ['reports'],
     queryFn: async () => {
@@ -16,33 +15,71 @@ export default function Reports() {
     },
   })
 
+  const navItems = [
+    { title: 'Dashboard', href: '/hr/dashboard', icon: Home },
+    { title: 'Event Management', href: '/hr/events', icon: Calendar },
+    { title: 'Reports', href: '/hr/reports', icon: BarChart },
+    { title: 'User Management', href: '/hr/users', icon: Users },
+  ]
+
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Loading reports...</p>
-      </div>
+      <DashboardLayout navItems={navItems}>
+        <div className="space-y-4">
+          <div>
+            <Skeleton className="h-9 w-64" />
+            <Skeleton className="h-5 w-48 mt-2" />
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {[...Array(4)].map((_, i) => (
+              <Card key={i}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-4 rounded-full" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-8 w-16" />
+                  <Skeleton className="h-3 w-32 mt-2" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {[...Array(2)].map((_, i) => (
+              <Card key={i}>
+                <CardHeader>
+                  <Skeleton className="h-6 w-40" />
+                  <Skeleton className="h-4 w-32 mt-2" />
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {[...Array(3)].map((_, j) => (
+                      <Skeleton key={j} className="h-16 w-full" />
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </DashboardLayout>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/hr/dashboard')}
-            className="mb-2"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
-          </Button>
-          <h1 className="text-2xl font-bold text-gray-900">Reports & Analytics</h1>
+    <DashboardLayout navItems={navItems}>
+      <div className="space-y-4">
+        <div className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
+          <h2 className="text-3xl font-bold tracking-tight">Reports & Analytics</h2>
+          <p className="text-muted-foreground">
+            View detailed reports and statistics
+          </p>
         </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
-          <Card>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 transition-shadow hover:shadow-lg" style={{ animationDelay: '0ms' }}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Events</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
@@ -55,7 +92,7 @@ export default function Reports() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 transition-shadow hover:shadow-lg" style={{ animationDelay: '75ms' }}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Quiz Results</CardTitle>
               <Trophy className="h-4 w-4 text-muted-foreground" />
@@ -68,7 +105,7 @@ export default function Reports() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 transition-shadow hover:shadow-lg" style={{ animationDelay: '150ms' }}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pass Rate</CardTitle>
               <Award className="h-4 w-4 text-muted-foreground" />
@@ -83,7 +120,7 @@ export default function Reports() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 transition-shadow hover:shadow-lg" style={{ animationDelay: '300ms' }}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Spins</CardTitle>
               <Award className="h-4 w-4 text-muted-foreground" />
@@ -97,8 +134,8 @@ export default function Reports() {
           </Card>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 mb-8">
-          <Card>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card className="animate-in fade-in-0 slide-in-from-left-4 duration-500 transition-shadow hover:shadow-lg" style={{ animationDelay: '400ms' }}>
             <CardHeader>
               <CardTitle>Event Statistics</CardTitle>
               <CardDescription>Overview of all events</CardDescription>
@@ -106,8 +143,12 @@ export default function Reports() {
             <CardContent>
               {reportData?.events && reportData.events.length > 0 ? (
                 <div className="space-y-4">
-                  {reportData.events.map((event: any) => (
-                    <div key={event.id} className="flex justify-between items-center p-3 border rounded-lg">
+                  {reportData.events.map((event: any, index: number) => (
+                    <div
+                      key={event.id}
+                      className="flex justify-between items-center p-3 border rounded-lg animate-in fade-in-0 slide-in-from-left-2 duration-300"
+                      style={{ animationDelay: `${index * 50}ms` }}
+                    >
                       <div>
                         <p className="text-sm font-medium">{event.name}</p>
                         <p className="text-xs text-gray-600">{event.status}</p>
@@ -125,7 +166,7 @@ export default function Reports() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="animate-in fade-in-0 slide-in-from-right-4 duration-500 transition-shadow hover:shadow-lg" style={{ animationDelay: '400ms' }}>
             <CardHeader>
               <CardTitle>Recent Quiz Results</CardTitle>
               <CardDescription>Latest quiz completions</CardDescription>
@@ -133,15 +174,16 @@ export default function Reports() {
             <CardContent>
               {reportData?.topParticipants && reportData.topParticipants.length > 0 ? (
                 <div className="space-y-3">
-                  {reportData.topParticipants.slice(0, 10).map((result: any) => (
+                  {reportData.topParticipants.slice(0, 10).map((result: any, index: number) => (
                     <div
                       key={result.user.id + result.completedAt}
-                      className="flex justify-between items-center p-3 border rounded-lg"
+                      className="flex justify-between items-center p-3 border rounded-lg animate-in fade-in-0 slide-in-from-right-2 duration-300"
+                      style={{ animationDelay: `${index * 50}ms` }}
                     >
                       <div>
                         <p className="text-sm font-medium">{result.user.fullName}</p>
                         <p className="text-xs text-gray-600">
-                          {new Date(result.completedAt).toLocaleString()}
+                          {formatDateTimeVN(result.completedAt)}
                         </p>
                       </div>
                       <div className="flex items-center gap-4">
@@ -166,7 +208,7 @@ export default function Reports() {
           </Card>
         </div>
 
-        <Card>
+        <Card className="animate-in fade-in-0 slide-in-from-bottom-4 duration-500 transition-shadow hover:shadow-lg" style={{ animationDelay: '500ms' }}>
           <CardHeader>
             <CardTitle>Spin Results</CardTitle>
             <CardDescription>Recent spin outcomes</CardDescription>
@@ -177,12 +219,13 @@ export default function Reports() {
                 {reportData.recentSpins.slice(0, 10).map((spin: any, idx: number) => (
                   <div
                     key={idx}
-                    className="flex justify-between items-center p-3 border rounded-lg"
+                    className="flex justify-between items-center p-3 border rounded-lg animate-in fade-in-0 slide-in-from-bottom-2 duration-300"
+                    style={{ animationDelay: `${idx * 50}ms` }}
                   >
                     <div>
                       <p className="text-sm font-medium">{spin.event || 'Unknown Event'}</p>
                       <p className="text-xs text-gray-600">
-                        {new Date(spin.spunAt).toLocaleString()}
+                        {formatDateTimeVN(spin.spunAt)}
                       </p>
                     </div>
                     <div className="text-right">
@@ -196,8 +239,7 @@ export default function Reports() {
             )}
           </CardContent>
         </Card>
-      </main>
-    </div>
+      </div>
+    </DashboardLayout>
   )
 }
-

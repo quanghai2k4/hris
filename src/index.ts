@@ -7,6 +7,7 @@ import questionsRouter from './modules/questions/questions.routes.ts';
 import quizRouter from './modules/quiz/quiz.routes.ts';
 import spinRouter from './modules/spin/spin.routes.ts';
 import reportsRouter from './modules/reports/reports.routes.ts';
+import usersRouter from './modules/users/users.routes.ts';
 import { errorHandler } from './middleware/errorHandler.ts';
 
 dotenv.config();
@@ -27,6 +28,7 @@ app.use('/api/questions', questionsRouter);
 app.use('/api/quiz', quizRouter);
 app.use('/api/spin', spinRouter);
 app.use('/api/reports', reportsRouter);
+app.use('/api/users', usersRouter);
 
 app.use(errorHandler);
 

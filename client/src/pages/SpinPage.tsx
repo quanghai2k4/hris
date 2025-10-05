@@ -2,10 +2,11 @@ import { useState, useRef, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { api } from '@/lib/api'
+import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from '@/hooks/use-toast'
-import { Gift } from 'lucide-react'
+import { Gift, Home } from 'lucide-react'
 
 const PRIZES = [
   'Amazon Gift Card $50',
@@ -103,7 +104,7 @@ export default function SpinPage() {
       ctx.rotate(startAngle + sliceAngle / 2)
       ctx.textAlign = 'center'
       ctx.fillStyle = '#fff'
-      ctx.font = 'bold 14px Arial'
+      ctx.font = 'bold 14px "Google Sans Code", monospace'
       ctx.fillText(prize, radius * 0.65, 0)
       ctx.restore()
     })
@@ -160,58 +161,54 @@ export default function SpinPage() {
     spin.mutate(spinCode)
   }
 
+  const navItems = [
+    { title: 'Dashboard', href: '/employee/dashboard', icon: Home },
+  ]
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <h1 className="text-2xl font-bold text-gray-900">Spin the Wheel!</h1>
-        </div>
-      </header>
+    <DashboardLayout navItems={navItems}>
+      <div className="flex flex-col items-center">
+        <Card className="w-full max-w-lg transition-shadow hover:shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-center">Prize Wheel</CardTitle>
+            <CardDescription className="text-center">
+              Click the button below to spin and win a prize!
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center space-y-6">
+            <div className="relative">
+              <canvas ref={canvasRef} className="max-w-full h-auto" />
+            </div>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col items-center">
-          <Card className="w-full max-w-lg">
-            <CardHeader>
-              <CardTitle className="text-center">Prize Wheel</CardTitle>
-              <CardDescription className="text-center">
-                Click the button below to spin and win a prize!
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center space-y-6">
-              <div className="relative">
-                <canvas ref={canvasRef} className="max-w-full h-auto" />
-              </div>
-
-              {result ? (
-                <div className="w-full space-y-4">
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
-                    <Gift className="h-12 w-12 text-green-600 mx-auto mb-4" />
-                    <h3 className="text-xl font-bold text-green-900 mb-2">
-                      Congratulations!
-                    </h3>
-                    <p className="text-2xl font-bold text-green-700">{result.prize}</p>
-                  </div>
-                  <Button
-                    className="w-full"
-                    onClick={() => navigate('/employee/dashboard')}
-                  >
-                    Back to Dashboard
-                  </Button>
+            {result ? (
+              <div className="w-full space-y-4">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+                  <Gift className="h-12 w-12 text-green-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-green-900 mb-2">
+                    Congratulations!
+                  </h3>
+                  <p className="text-2xl font-bold text-green-700">{result.prize}</p>
                 </div>
-              ) : (
                 <Button
-                  size="lg"
-                  className="w-full"
-                  onClick={handleSpin}
-                  disabled={isSpinning || spin.isPending}
+                  className="w-full border transition-all duration-200 hover:scale-105 active:scale-95"
+                  onClick={() => navigate('/employee/dashboard')}
                 >
-                  {isSpinning ? 'Spinning...' : 'Spin the Wheel!'}
+                  Back to Dashboard
                 </Button>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </main>
-    </div>
+              </div>
+            ) : (
+              <Button
+                size="lg"
+                className="w-full border transition-all duration-200 hover:scale-105 active:scale-95"
+                onClick={handleSpin}
+                disabled={isSpinning || spin.isPending}
+              >
+                {isSpinning ? 'Spinning...' : 'Spin the Wheel!'}
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </DashboardLayout>
   )
 }

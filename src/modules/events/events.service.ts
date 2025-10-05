@@ -3,7 +3,8 @@ import { createError } from '../../middleware/errorHandler.ts';
 import { type Prisma } from '@prisma/client';
 
 export const getAllEvents = async (userId?: string, userRole?: string) => {
-  const now = new Date();
+  const nowUTC = new Date();
+  const nowVN = new Date(nowUTC.toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }));
   
   const where: Prisma.EventWhereInput = userRole === 'HR_MANAGER' || userRole === 'ADMIN'
     ? {}
@@ -26,9 +27,16 @@ export const getAllEvents = async (userId?: string, userRole?: string) => {
 
   if (userRole !== 'HR_MANAGER' && userRole !== 'ADMIN') {
     return events.filter(event => {
-      const start = new Date(event.startDate);
-      const end = new Date(event.endDate);
-      return start <= now && end >= now;
+      const startUTC = new Date(event.startDate);
+      const endUTC = new Date(event.endDate);
+      
+      const startVN = new Date(startUTC.toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }));
+      const endVN = new Date(endUTC.toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }));
+      
+      startVN.setHours(0, 0, 0, 0);
+      endVN.setHours(23, 59, 59, 999);
+      
+      return startVN <= nowVN && endVN >= nowVN;
     });
   }
 
