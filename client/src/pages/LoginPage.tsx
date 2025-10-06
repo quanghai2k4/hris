@@ -57,6 +57,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={isLoading}
+                className="placeholder:opacity-50"
               />
             </div>
             
@@ -70,10 +71,11 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isLoading}
+                className="placeholder:opacity-50"
               />
             </div>
 
-            <Button type="submit" className="w-full border transition-all duration-200 hover:scale-105 active:scale-95" disabled={isLoading}>
+            <Button type="submit" className="w-full border transition-all duration-200 hover:bg-neutral-400 hover:text-white" disabled={isLoading}>
               {isLoading ? 'Logging in...' : 'Login'}
             </Button>
           </form>

@@ -175,7 +175,7 @@ export default function QuizPage() {
         <Card className="transition-shadow hover:shadow-lg">
           <CardContent className="pt-6">
             <p>No questions available for this event</p>
-            <Button className="mt-4 border transition-all duration-200 hover:scale-105 active:scale-95" onClick={() => navigate('/employee/dashboard')}>
+            <Button className="mt-4 border transition-all duration-200 hover:bg-neutral-400 hover:text-white" onClick={() => navigate('/employee/dashboard')}>
               Back to Dashboard
             </Button>
           </CardContent>
@@ -189,7 +189,7 @@ export default function QuizPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <Card className="w-full max-w-md animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-4 duration-500 transition-shadow hover:shadow-lg">
           <CardHeader>
-            <div className="flex justify-center mb-4 animate-in fade-in-0 zoom-in-0 duration-700" style={{ animationDelay: '200ms' }}>
+            <div className="flex justify-center mb-4 animate-in fade-in-0 zoom-in-0 duration-700">
               <CheckCircle className="h-16 w-16 text-green-600" />
             </div>
             <CardTitle className="text-center">Quiz Completed!</CardTitle>
@@ -198,7 +198,7 @@ export default function QuizPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="text-center animate-in fade-in-0 slide-in-from-bottom-2 duration-500" style={{ animationDelay: '300ms' }}>
+            <div className="text-center animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
               <p className="text-4xl font-bold">
                 {result.result.correctAnswers}/{result.result.totalQuestions}
               </p>
@@ -211,7 +211,7 @@ export default function QuizPage() {
             </div>
 
             {result.result.passedThreshold && result.spinCode && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 animate-in fade-in-0 slide-in-from-bottom-2 duration-500" style={{ animationDelay: '400ms' }}>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
                 <p className="text-sm font-medium text-blue-900 mb-2">
                   Your Spin Code:
                 </p>
@@ -221,10 +221,10 @@ export default function QuizPage() {
               </div>
             )}
 
-            <div className="space-y-2 animate-in fade-in-0 slide-in-from-bottom-2 duration-500" style={{ animationDelay: '500ms' }}>
+            <div className="space-y-2 animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
               {result.result.passedThreshold && result.spinCode && (
                 <Button
-                  className="w-full border transition-all duration-200 hover:scale-105 active:scale-95"
+                  className="w-full border transition-all duration-200 hover:bg-neutral-400 hover:text-white"
                   onClick={() => navigate(`/employee/spin/${result.spinCode}`)}
                 >
                   Spin the Wheel!
@@ -232,7 +232,7 @@ export default function QuizPage() {
               )}
               <Button
                 variant="outline"
-                className="w-full transition-all duration-200 hover:scale-105 active:scale-95"
+                className="w-full transition-all duration-200 hover:bg-neutral-400 hover:text-white"
                 onClick={() => navigate('/employee/dashboard')}
               >
                 Back to Dashboard
@@ -253,7 +253,7 @@ export default function QuizPage() {
           <Button
             variant="ghost"
             onClick={() => navigate('/employee/dashboard')}
-            className="mb-2 transition-all duration-200 hover:scale-105 active:scale-95"
+            className="mb-2 transition-all duration-200 hover:bg-neutral-400 hover:text-white"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Dashboard
@@ -277,11 +277,10 @@ export default function QuizPage() {
               value={selectedAnswers[currentQuestion.id] || ''}
               onValueChange={(value) => handleAnswerChange(currentQuestion.id, value)}
             >
-              {currentQuestion.answers.map((answer, index) => (
+              {currentQuestion.answers.map((answer) => (
                 <div
                   key={answer.id}
                   className="flex items-center space-x-2 animate-in fade-in-0 slide-in-from-left-2 duration-300"
-                  style={{ animationDelay: `${index * 75}ms` }}
                 >
                   <RadioGroupItem value={answer.id} id={`answer-${answer.id}`} />
                   <Label htmlFor={`answer-${answer.id}`} className="cursor-pointer">
@@ -296,7 +295,7 @@ export default function QuizPage() {
                 variant="outline"
                 onClick={handlePrevious}
                 disabled={currentQuestionIndex === 0}
-                className="transition-all duration-200 hover:scale-105 active:scale-95"
+                className="transition-all duration-200 hover:bg-neutral-400 hover:text-white"
               >
                 Previous
               </Button>
@@ -305,18 +304,18 @@ export default function QuizPage() {
                 <Button
                   onClick={handleSubmit}
                   disabled={!isAllAnswered() || submitQuiz.isPending}
-                  className="border transition-all duration-200 hover:scale-105 active:scale-95"
+                  className="border transition-all duration-200 hover:bg-neutral-400 hover:text-white"
                 >
                   {submitQuiz.isPending ? 'Submitting...' : 'Submit Quiz'}
                 </Button>
               ) : (
-                <Button onClick={handleNext} className="border transition-all duration-200 hover:scale-105 active:scale-95">Next</Button>
+                <Button onClick={handleNext} className="border transition-all duration-200 hover:bg-neutral-400 hover:text-white">Next</Button>
               )}
             </div>
           </CardContent>
         </Card>
 
-        <div className="mt-4 flex gap-2 justify-center animate-in fade-in-0 slide-in-from-bottom-2 duration-500" style={{ animationDelay: '200ms' }}>
+        <div className="mt-4 flex gap-2 justify-center animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
           {session.questions.map((q, index) => (
             <button
               key={q.id}
