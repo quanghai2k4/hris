@@ -117,7 +117,7 @@ Backend chạy tại: http://localhost:5000
 cd client
 npm run dev
 ```
-Frontend chạy tại: http://localhost:5173
+Frontend chạy tại: http://localhost:5174
 
 ### Production build
 
