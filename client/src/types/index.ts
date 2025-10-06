@@ -3,7 +3,7 @@ export interface User {
   employeeId: string
   fullName: string
   email: string
-  role: 'EMPLOYEE' | 'HR_MANAGER'
+  role: 'EMPLOYEE' | 'HR_MANAGER' | 'ADMIN'
 }
 
 export interface Event {

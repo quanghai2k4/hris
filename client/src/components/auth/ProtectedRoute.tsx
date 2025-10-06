@@ -4,7 +4,7 @@ import { useAuth } from '@/lib/auth'
 
 interface ProtectedRouteProps {
   children: ReactNode
-  allowedRoles?: ('EMPLOYEE' | 'HR_MANAGER')[]
+  allowedRoles?: ('EMPLOYEE' | 'HR_MANAGER' | 'ADMIN')[]
 }
 
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
@@ -19,7 +19,8 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
   }
 
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/" replace />
+    const defaultPath = user.role === 'HR_MANAGER' || user.role === 'ADMIN' ? '/hr/dashboard' : '/employee/dashboard'
+    return <Navigate to={defaultPath} replace />
   }
 
   return <>{children}</>
